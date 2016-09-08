@@ -56,6 +56,10 @@ def get_settings_string():
 def set_setting(setting, value):
     config.set('Settings',setting, value)
 
+def set_config():
+    with open('settings.cfg', 'wb') as configfile:
+        config.write(configfile)
+
 def handle_command(command, channel):
     """
         Receives commands directed at the bot and determines if they
@@ -73,11 +77,18 @@ def handle_command(command, channel):
             set_setting('minminutes', minminutes)
             response = 'setting min minutes'
         if 'maxminutes' in command:
-            response = 'max minutes'
+            maxminutes = list_of_words[list_of_words.index("maxminutes") + 1]
+            set_setting('maxminutes', maxminutes)
+            response = 'setting max minutes'
         elif 'starttime' in command:
-            response = 'start time'
+            starttime = list_of_words[list_of_words.index("starttime") + 1]
+            set_setting('starttime', starttime)
+            response = 'setting start time'
         elif 'endtime' in command:
-            response = 'end time'
+            endtime = list_of_words[list_of_words.index("endtime") + 1]
+            set_setting('endtime', endtime)
+            response = 'setting end time'
+        set_config()
     elif '/view' in command:
         if 'settings' in command:
             response = get_settings_string()
