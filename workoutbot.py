@@ -61,6 +61,10 @@ def set_config():
     with open('settings.cfg', 'wb') as configfile:
         config.write(configfile)
 
+def get_command_value(word_list, keyword):
+    return word_list[word_list.index(keyword) + 1]
+
+
 def handle_command(command, channel):
     """
         Receives commands directed at the bot and determines if they
@@ -74,20 +78,16 @@ def handle_command(command, channel):
 
     if '/set' in command:
         if 'minminutes' in command:
-            minminutes = list_of_words[list_of_words.index("minminutes") + 1]
-            set_setting('minminutes', minminutes)
+            set_setting('minminutes', get_command_value(list_of_words, "minminutes"))
             response = 'setting min minutes'
         if 'maxminutes' in command:
-            maxminutes = list_of_words[list_of_words.index("maxminutes") + 1]
-            set_setting('maxminutes', maxminutes)
+            set_setting('maxminutes', get_command_value(list_of_words, "maxminutes"))
             response = 'setting max minutes'
         elif 'starttime' in command:
-            starttime = list_of_words[list_of_words.index("starttime") + 1]
-            set_setting('starttime', starttime)
+            set_setting('starttime', get_command_value(list_of_words, "starttime"))
             response = 'setting start time'
         elif 'endtime' in command:
-            endtime = list_of_words[list_of_words.index("endtime") + 1]
-            set_setting('endtime', endtime)
+            set_setting('endtime', get_command_value(list_of_words, "endtime"))
             response = 'setting end time'
         set_config()
     elif '/view' in command:
@@ -106,13 +106,11 @@ def handle_command(command, channel):
                 response = 'all user stats'
     elif '/workouts'in command:
         if 'add' in command:
-            movement = list_of_words[list_of_words.index("add") + 1]
-            newMov = Movement(movement)
+            newMov = Movement(get_command_value(list_of_words, "add"))
             json_utils.append_json_to_file("Movement.json", newMov.t_json)
             response = 'adding ...'
         elif 'remove' in command:
-            movement = list_of_words[list_of_words.index("remove") + 1]
-            json_utils.remove_movement(movement)
+            json_utils.remove_movement(get_command_value(list_of_words, "remove"))
             response = 'removing ...'
         elif 'view' in command:
             response = json_utils.get_movements_string()
