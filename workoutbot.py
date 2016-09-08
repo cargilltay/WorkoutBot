@@ -3,6 +3,7 @@ import time
 import json_utils
 import json
 import ConfigParser
+import datetime
 from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
@@ -114,7 +115,7 @@ def handle_command(command, channel):
             json_utils.remove_movement(movement)
             response = 'removing ...'
         elif 'view' in command:
-            response = 'all available workouts'
+            response = json_utils.get_movements_string()
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, as_user=True)
