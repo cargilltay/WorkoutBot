@@ -8,7 +8,7 @@ from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
 from slackclient import SlackClient
-
+from scheduler import update_member_list
 
 # starterbot's ID as an environment variable
 BOT_ID = os.environ.get("BOT_ID")
@@ -141,6 +141,7 @@ if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
         print("StarterBot connected and running!")
+        update_member_list()
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:

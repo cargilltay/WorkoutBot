@@ -98,11 +98,9 @@ def update_channel_members(channel_name):
                 names.pop(j)
                 break
     for name in names:
+        slack_client.api_call("chat.postMessage", channel=channel_name,
+                              text="Welcome to quick-workout " + name['name'], as_user=True)
         append_json_to_file(fileName, name)
-
-update_channel_members('quick-workout')
-
-
-
+    print obj
 
 
