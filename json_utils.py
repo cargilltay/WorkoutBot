@@ -1,11 +1,17 @@
 import json
 import os
+from slackclient import SlackClient
+
+#constants
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+
+
 
 def write_json_to_file(fileName,tJson):
     if os.path.isfile(fileName) is False:
         with open(fileName, mode='w') as f:
             json.dump([], f)
-    with open(fileName, "w") as outfile:
+    with open(fileName, 'w') as outfile:
         json.dump(tJson, outfile)
 
 def append_json_to_file(fileName,tJson):
@@ -16,26 +22,26 @@ def append_json_to_file(fileName,tJson):
     with open(fileName, mode='r') as feedsjson:
         feeds = json.load(feedsjson)
 
-    with open(fileName, "w") as outfile:
+    with open(fileName, 'w') as outfile:
         feeds.append(tJson)
         json.dump(feeds, outfile)
 
 def remove_movement(movement):
-    fileName = "Movement.json"
+    fileName = 'movement.json'
     movement = movement.lower()
     if os.path.isfile(fileName) is False:
         return
 
     obj  = json.load(open(fileName))
     for i in xrange(len(obj)):
-        if obj[i]["MovementName"].lower() == movement:
+        if obj[i]['MovementName'].lower() == movement:
             obj.pop(i)
             break
     write_json_to_file(fileName, obj)
 
 def get_movements_string():
-    fileName = "Movement.json"
-    err_mov = "No Workout Movements"
+    fileName = 'movement.json'
+    err_mov = 'No Workout Movements'
 
     if os.path.isfile(fileName) is False:
         return err_mov
@@ -49,6 +55,54 @@ def get_movements_string():
 
     for i in xrange(len(obj)):
         counter += 1
-        s_string += (str(counter) + ': ' + obj[i]["MovementName"] + '\n')
+        s_string += (str(counter) + ': ' + obj[i]['MovementName'] + '\n')
 
     return s_string
+
+def update_channel_members(channel_name):
+    fileName = 'members.json'
+
+    #get channels
+    api_call = slack_client.api_call('channels.list')
+    channels = api_call.get('channels')
+
+    #get all users
+    api_call = slack_client.api_call('users.list')
+    users = api_call.get('members')
+
+    #get channel members id
+    member_IDs = ''
+    for channel in channels:
+        if channel.get('name') == channel_name:
+            member_IDs = channel.get('members')
+            
+    #add names and id to json
+    names = []
+    for ID in member_IDs:
+        for user in users:
+            userID = user.get('id')
+            if userID == ID:
+                name_ID_pair = {'name': user.get('name'), 'id': userID}
+                names.append(name_ID_pair)
+
+    #check existing members json
+    if os.path.isfile(fileName) is False:
+        with open(fileName, mode='w') as f:
+            json.dump([], f)
+
+    obj = json.load(open(fileName))
+
+    for i in xrange(len(obj)):
+        for j in xrange(len(names)):
+            if obj[i]['id'].lower() == names[j]['id'].lower():
+                names.pop(j)
+                break
+    for name in names:
+        append_json_to_file(fileName, name)
+
+update_channel_members('quick-workout')
+
+
+
+
+

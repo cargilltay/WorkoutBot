@@ -94,7 +94,7 @@ def handle_command(command, channel):
         if 'settings' in command:
             response = get_settings_string()
         elif 'workouts' in command:
-            response = 'all available workouts'
+            response = json_utils.get_movements_string()
         elif 'stats' in command:
             if 'month' in command:
                 response = 'aggregate of current month'
