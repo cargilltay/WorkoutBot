@@ -93,14 +93,25 @@ def update_channel_members(channel_name):
     obj = json.load(open(fileName))
 
     for i in xrange(len(obj)):
+        is_old = False
         for j in xrange(len(names)):
-            if obj[i]['id'].lower() == names[j]['id'].lower():
+            if (obj[i]['id']).lower() == (names[j]['id']).lower():
+                is_old = True
                 names.pop(j)
                 break
-    for name in names:
-        slack_client.api_call("chat.postMessage", channel=channel_name,
-                              text="Welcome to quick-workout " + name['name'], as_user=True)
-        append_json_to_file(fileName, name)
+        if is_old is False:
+            print i 
+            obj.pop(i)
+    
+    if names:
+        for name in names:
+            obj.append(name)
+            slack_client.api_call("chat.postMessage", channel=channel_name,
+                                  text="Welcome to quick-workout " + name['name'], as_user=True)
+            
+    write_json_to_file(fileName, obj)
+
+
     print obj
 
 

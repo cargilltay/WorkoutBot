@@ -4,11 +4,12 @@ import json_utils
 import json
 import ConfigParser
 import datetime
+import commands
 from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
 from slackclient import SlackClient
-from scheduler import update_member_list
+import scheduler 
 
 # starterbot's ID as an environment variable
 BOT_ID = os.environ.get("BOT_ID")
@@ -56,14 +57,34 @@ def get_settings_string():
 
 def set_setting(setting, value):
     config.set('Settings',setting, value)
-
-def set_config():
     with open('settings.cfg', 'wb') as configfile:
         config.write(configfile)
 
 def get_command_value(word_list, keyword):
     return word_list[word_list.index(keyword) + 1]
 
+def obtain_time(word_list, command_type):
+    
+    #print word_list.index(command_type)
+    whole_input = word_list[word_list.index(command_type) + 1:]
+    pm_am = whole_input[1].upper()
+    time = whole_input[0].split(':')
+
+    try:
+        hours = int(time[0])
+        minutes = int(time[1])
+        if hours > 12 or hours <= 0 or minutes > 60 or minutes < 0:
+            return 'Please valid hours and minutes.'
+    except ValueError:
+        return 'Invalid time format... Use: "hr:min am"'
+                
+
+    if pm_am != 'PM' and pm_am != 'AM':
+        return  'Specify "am" or "pm" after your time entry.'
+        
+    #scheduler.        
+    set_setting(command_type, whole_input)
+    return 'Setting %s' % command_type
 
 def handle_command(command, channel):
     """
@@ -72,24 +93,23 @@ def handle_command(command, channel):
         returns back what it needs for clarification.
     """
     response = "Not sure what you mean." + print_commands();
-    print command
     command = command['text']
     list_of_words = command.split()
 
+    #move all to json file
+    time_commands = ['minminutes','maxminutes','starttime','endtime']
+    workout_commands = ['add', 'remove','view']
+
+    #stats needs own sub-object for view
+    view_commands = ['settings','workouts','stats']
+    stats = ['month','week','datetimeformat','default']
+
+
     if '/set' in command:
-        if 'minminutes' in command:
-            set_setting('minminutes', get_command_value(list_of_words, "minminutes"))
-            response = 'setting min minutes'
-        if 'maxminutes' in command:
-            set_setting('maxminutes', get_command_value(list_of_words, "maxminutes"))
-            response = 'setting max minutes'
-        elif 'starttime' in command:
-            set_setting('starttime', get_command_value(list_of_words, "starttime"))
-            response = 'setting start time'
-        elif 'endtime' in command:
-            set_setting('endtime', get_command_value(list_of_words, "endtime"))
-            response = 'setting end time'
-        set_config()
+        command_value = get_command_value(list_of_words, "/set")
+        if command_value in time_commands:
+            time = obtain_time(list_of_words, command_value)
+            response = time
     elif '/view' in command:
         if 'settings' in command:
             response = get_settings_string()
@@ -141,7 +161,8 @@ if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
         print("StarterBot connected and running!")
-        update_member_list()
+        #Going to have to use threading not this:
+        #scheduler.update_member_list()
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
