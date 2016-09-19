@@ -4,7 +4,7 @@ import json_utils
 import json
 import ConfigParser
 import datetime
-import commands
+from workoutbot.custom.json.commands import *
 from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
@@ -26,8 +26,8 @@ config.readfp(open('settings.cfg'))
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 # write to json file
-with open("memory.json", "w") as outfile:
-    json.dump({'numbers':2, 'strings':'test', 'x':'x', 'y':'y'}, outfile)
+#with open("memory.json", "w") as outfile:
+    #json.dump({'numbers':2, 'strings':'test', 'x':'x', 'y':'y'}, outfile)
 
 def print_commands():
     return ("\n/set \n" 
@@ -107,7 +107,7 @@ def handle_command(command, channel):
 
     if '/set' in command:
         command_value = get_command_value(list_of_words, "/set")
-        if command_value in time_commands:
+        if command_value in commands['time']:
             time = obtain_time(list_of_words, command_value)
             response = time
     elif '/view' in command:
