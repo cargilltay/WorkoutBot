@@ -4,7 +4,7 @@ import json_utils
 import json
 import ConfigParser
 import datetime
-from commands import *
+import commands
 from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
@@ -64,54 +64,64 @@ def obtain_time(word_list, command_type):
     set_setting(command_type, whole_input)
     return 'Setting %s' % command_type
 
+def view_response_handler(command):
+    if command == 'settings':
+        return get_settings_string()
+    elif command == 'workouts':
+        return json_utils.get_movements_string()
+    elif command == 'stats':
+        return 'unimplamented'
+    else:
+        return default_response()
+        #    if 'month' in command:
+        #        response = 'aggregate of current month'
+        #    elif 'week' in command:
+        #        response = 'aggregate of current week'
+        #    elif 'datetimeformat' in command:
+        #        response = 'specific date'
+        #    else:
+        #        response = 'all user stats'
+
+def workout_response_handler(command, list_of_words):
+    if 'add' in command:
+        newMov = Movement(get_command_value(list_of_words, "add"))
+        json_utils.append_json_to_file("movement.json", newMov.t_json)
+        return 'adding ...'
+    elif 'remove' in command:
+        json_utils.remove_movement(get_command_value(list_of_words, "remove"))
+        return 'removing ...'
+    elif 'view' in command:
+        return json_utils.get_movements_string()
+    else:
+        return default_reponse()
+
+def default_response():
+    return "Not sure what you mean.\n" + print_commands()
+
 def handle_command(command, channel):
-    """
-        Receives commands directed at the bot and determines if they
-        are valid commands. If so, then acts on the commands. If not,
-        returns back what it needs for clarification.
-    """
-    response = "Not sure what you mean.\n" + print_commands();
+    #default response
+    response = default_response()
+    
     command = command['text']
     list_of_words = command.split()
-
-    #move all to json file
-    time_commands = ['minminutes','maxminutes','starttime','endtime']
-    workout_commands = ['add', 'remove','view']
-
-    #stats needs own sub-object for view
-    view_commands = ['settings','workouts','stats']
-    stats = ['month','week','datetimeformat','default']
-
+    
+    commands = json_utils.get_commands()
 
     if '/set' in command:
         command_value = get_command_value(list_of_words, "/set")
         if command_value in commands['time']:
             time = obtain_time(list_of_words, command_value)
             response = time
+
     elif '/view' in command:
-        if 'settings' in command:
-            response = get_settings_string()
-        elif 'workouts' in command:
-            response = json_utils.get_movements_string()
-        elif 'stats' in command:
-            if 'month' in command:
-                response = 'aggregate of current month'
-            elif 'week' in command:
-                response = 'aggregate of current week'
-            elif 'datetimeformat' in command:
-                response = 'specific date'
-            else:
-                response = 'all user stats'
+        command_value = get_command_value(list_of_words, "/view")
+        if command_value in commands['view']:
+            response = view_response_handler(command_value)
+    
     elif '/workouts'in command:
-        if 'add' in command:
-            newMov = Movement(get_command_value(list_of_words, "add"))
-            json_utils.append_json_to_file("movement.json", newMov.t_json)
-            response = 'adding ...'
-        elif 'remove' in command:
-            json_utils.remove_movement(get_command_value(list_of_words, "remove"))
-            response = 'removing ...'
-        elif 'view' in command:
-            response = json_utils.get_movements_string()
+        command_value = get_command_value(list_of_words, "/workouts")
+        if command_value in commands['workouts']:
+            response = workout_response_handler(command_value, list_of_words)
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, as_user=True)

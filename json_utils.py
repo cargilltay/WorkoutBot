@@ -27,31 +27,37 @@ def append_json_to_file(fileName,tJson):
         json.dump(feeds, outfile)
 
 def remove_movement(movement):
-    fileName = 'movement.json'
-    movement = movement.lower()
-    if os.path.isfile(fileName) is False:
-        return
+    obj  = open_json_file("movement.json")
 
-    obj  = json.load(open(fileName))
+    movement = movement.lower()
+
     for i in xrange(len(obj)):
         if obj[i]['MovementName'].lower() == movement:
             obj.pop(i)
             break
-    write_json_to_file(fileName, obj)
+    write_json_to_file('movement.json', obj)
 
-def get_command_string():
-    fileName = 'commands.json'
-    err_mov = 'Commands file error. See commands.json'
+def open_json_file(fileName):
+    err_mov = 'Error opening' + fileName
 
     if os.path.isfile(fileName) is False:
         return err_mov
 
-    counter = 0
-    s_string = 'Here are your available commands:\n'
     obj  = json.load(open(fileName))
 
     if not obj:
         return err_mov
+
+    return obj
+
+def get_commands():
+    return  open_json_file('commands.json')[0]
+
+def get_command_string():
+    obj = open_json_file('commands.json')
+
+    counter = 0
+    s_string = 'Here are your available commands:\n'
 
     for i in xrange(len(obj)):
         for cmd in obj[i]:
@@ -63,18 +69,13 @@ def get_command_string():
 
 
 def get_movements_string():
-    fileName = 'movement.json'
-    err_mov = 'No Workout Movements'
+    obj = open_json_file('movement.json')
 
-    if os.path.isfile(fileName) is False:
-        return err_mov
+    if not obj:
+        return "No workouts"
 
     counter = 0
     s_string = 'Here are your workouts:\n'
-    obj  = json.load(open(fileName))
-
-    if not obj:
-        return err_mov
 
     for i in xrange(len(obj)):
         counter += 1
