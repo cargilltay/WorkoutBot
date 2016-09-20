@@ -4,7 +4,7 @@ import json_utils
 import json
 import ConfigParser
 import datetime
-from workoutbot.custom.json.commands import *
+from commands import *
 from movement import Movement
 from workout_user import WorkoutUser
 from workout import Workout
@@ -21,31 +21,11 @@ AT_BOT = "<@" + BOT_ID + ">"
 config = ConfigParser.ConfigParser()
 config.readfp(open('settings.cfg'))
 
-
 # instantiate Slack & Twilio clients
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
-# write to json file
-#with open("memory.json", "w") as outfile:
-    #json.dump({'numbers':2, 'strings':'test', 'x':'x', 'y':'y'}, outfile)
-
 def print_commands():
-    return ("\n/set \n" 
-    "\tminminutes\n"  
-    "\tmaxminutes\n"  
-    "\tstarttime\n" 
-    "\tendtime\n" 
-    "/view \n" 
-    "\tsettings\n"  
-    "\tworkouts\n" 
-    "\tstats\n" 
-    "\t\tmonth\n"  
-    "\t\tweek\n" 
-    "\t\tdatetimeformat\n"  
-    "/workouts \n" 
-    "\tadd\n" 
-    "\tremove\n" 
-    "\tview") 
+    return json_utils.get_command_string()
 
 def get_settings_string():
     s_string = ''
@@ -64,8 +44,6 @@ def get_command_value(word_list, keyword):
     return word_list[word_list.index(keyword) + 1]
 
 def obtain_time(word_list, command_type):
-    
-    #print word_list.index(command_type)
     whole_input = word_list[word_list.index(command_type) + 1:]
     pm_am = whole_input[1].upper()
     time = whole_input[0].split(':')
@@ -92,7 +70,7 @@ def handle_command(command, channel):
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    response = "Not sure what you mean." + print_commands();
+    response = "Not sure what you mean.\n" + print_commands();
     command = command['text']
     list_of_words = command.split()
 
@@ -127,7 +105,7 @@ def handle_command(command, channel):
     elif '/workouts'in command:
         if 'add' in command:
             newMov = Movement(get_command_value(list_of_words, "add"))
-            json_utils.append_json_to_file("Movement.json", newMov.t_json)
+            json_utils.append_json_to_file("movement.json", newMov.t_json)
             response = 'adding ...'
         elif 'remove' in command:
             json_utils.remove_movement(get_command_value(list_of_words, "remove"))

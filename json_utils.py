@@ -5,11 +5,8 @@ from slackclient import SlackClient
 #constants
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
-def prepend_folder(fileName):
-    return 'json/' + filename
-
 def write_json_to_file(fileName,tJson):
-    fileName = prepend_folder(fileName)
+    fileName = fileName
     if os.path.isfile(fileName) is False:
         with open(fileName, mode='w') as f:
             json.dump([], f)
@@ -17,7 +14,7 @@ def write_json_to_file(fileName,tJson):
         json.dump(tJson, outfile)
 
 def append_json_to_file(fileName,tJson):
-    fileName = prepend_folder(fileName)
+    fileName = fileName
     if os.path.isfile(fileName) is False:
         with open(fileName, mode='w') as f:
             json.dump([], f)
@@ -30,7 +27,7 @@ def append_json_to_file(fileName,tJson):
         json.dump(feeds, outfile)
 
 def remove_movement(movement):
-    fileName = 'json/movement.json'
+    fileName = 'movement.json'
     movement = movement.lower()
     if os.path.isfile(fileName) is False:
         return
@@ -42,8 +39,31 @@ def remove_movement(movement):
             break
     write_json_to_file(fileName, obj)
 
+def get_command_string():
+    fileName = 'commands.json'
+    err_mov = 'Commands file error. See commands.json'
+
+    if os.path.isfile(fileName) is False:
+        return err_mov
+
+    counter = 0
+    s_string = 'Here are your available commands:\n'
+    obj  = json.load(open(fileName))
+
+    if not obj:
+        return err_mov
+
+    for i in xrange(len(obj)):
+        for cmd in obj[i]:
+            s_string += (cmd + '\n')
+            for scmd in obj[i][cmd]:
+                s_string += ('\t' + scmd + '\n')
+
+    return s_string
+
+
 def get_movements_string():
-    fileName = 'json/movement.json'
+    fileName = 'movement.json'
     err_mov = 'No Workout Movements'
 
     if os.path.isfile(fileName) is False:
@@ -63,7 +83,7 @@ def get_movements_string():
     return s_string
 
 def update_channel_members(channel_name):
-    fileName = 'json/members.json'
+    fileName = 'members.json'
 
     #get channels
     api_call = slack_client.api_call('channels.list')
